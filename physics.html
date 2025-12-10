@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+
+<h1>This is a Heading</h1>
+<p>This is a paragraph.</p>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Физикийн томьёо туслагч</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background: #f7f7fb; color: #222; }
+    h1 { margin-bottom: 8px; }
+    .card { background: #fff; border: 1px solid #e6e6ef; border-radius: 12px; padding: 16px; margin: 12px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+    label { display: block; margin: 8px 0 4px; font-weight: 600; }
+    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cfd1d8; }
+    button { margin-top: 12px; padding: 10px 14px; border: none; border-radius: 8px; background: #4f46e5; color: #fff; font-weight: 600; cursor: pointer; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .result { margin-top: 10px; padding: 10px; background: #eef2ff; border-radius: 8px; }
+    .formula { font-family: "Courier New", monospace; background: #f0f2f8; padding: 6px 8px; border-radius: 6px; display: inline-block; }
+    .note { color: #555; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Физикийн томьёо туслагч</h1>
+  <p class="note">11-р ангийн түвшинд зориулсан энгийн бодогч. Томьёо болон алхмуудыг харуулна.</p>
+
+  <!-- Speed basic calculator -->
+  <div class="card">
+    <h2>Хурд бодогч (v = s / t)</h2>
+    <label>Зам s (жишээ: 60 км)</label>
+    <input id="s1" type="number" placeholder="Жишээ: 60" />
+    <label>Цаг t (жишээ: 2 цаг)</label>
+    <input id="t1" type="number" placeholder="Жишээ: 2" />
+    <button onclick="calcSpeed()">Бодох</button>
+    <div id="res1" class="result"></div>
+  </div>
+
+  <!-- General STD solver -->
+  <div class="card">
+    <h2>Хурд-зам-цагын шийдэгч</h2>
+    <p class="note">Доорх гурваас алинд нь утга хайгаад байгааг сонго. Бусдыг нь оруул.</p>
+    <label>Юуг бодох вэ?</label>
+    <select id="target">
+      <option value="v">Хурд v</option>
+      <option value="s">Зам s</option>
+      <option value="t">Цаг t</option>
+    </select>
+
+    <label>Зам s (хоосон байж болно, хэрэв s бодох бол)</label>
+    <input id="s2" type="number" placeholder="км эсвэл м" />
+    <label>Цаг t (хоосон байж болно, хэрэв t бодох бол)</label>
+    <input id="t2" type="number" placeholder="цаг эсвэл сек" />
+    <label>Хурд v (хоосон байж болно, хэрэв v бодох бол)</label>
+    <input id="v2" type="number" placeholder="км/цаг эсвэл м/с" />
+    <button onclick="solveSTD()">Бодох</button>
+    <div id="res2" class="result"></div>
+  </div>
+
+  <!-- Uniform acceleration -->
+  <div class="card">
+    <h2>Жигд хурдсаж хөдөлгөөн</h2>
+    <p class="note">a тогтвортой үед: v = u + a·t, s = u·t + ½·a·t²</p>
+    <label>Эхний хурд u</label>
+    <input id="u3" type="number" placeholder="м/с" />
+    <label>Хурдатгал a</label>
+    <input id="a3" type="number" placeholder="м/с²" />
+    <label>Цаг t</label>
+    <input id="t3" type="number" placeholder="сек" />
+    <button onclick="accelSolve()">Бодох</button>
+    <div id="res3" class="result"></div>
+  </div>
+
+  <script>
+    function fmt(x, unit="") {
+      if (x === null || isNaN(x)) return "—";
+      const v = Math.round(x * 1000) / 1000;
+      return unit ? `${v} ${unit}` : String(v);
+    }
+
+    function calcSpeed() {
+      const s = parseFloat(document.getElementById('s1').value);
+      const t = parseFloat(document.getElementById('t1').value);
+      const out = document.getElementById('res1');
+
+      if (isNaN(s) || isNaN(t) || t === 0) {
+        out.innerHTML = "Оролтоо шалгаарай (t=0 байж болохгүй).";
+        return;
+      }
+
+      const v = s / t;
+      out.innerHTML = `
+        <div><span class="formula">Томьёо: v = s / t</span></div>
+        <div>Алхмууд: v = ${s} / ${t} = ${fmt(v)} (нэгжээ та өөрөө тодорхойлно: км/цаг эсвэл м/с)</div>
+      `;
+    }
+
+    function solveSTD() {
+      const target = document.getElementById('target').value;
+      const s = parseFloat(document.getElementById('s2').value);
+      const t = parseFloat(document.getElementById('t2').value);
+      const v = parseFloat(document.getElementById('v2').value);
+      const out = document.getElementById('res2');
+
+      let ans = null, steps = "", formula = "";
+
+      if (target === "v") {
+        if (isNaN(s) || isNaN(t) || t === 0 ) {
+          out.innerHTML = "v бодохын тулд s болон t-г зөв оруулна.";
+          return;
+        }
+        ans = s / t;
+        formula = "v = s / t";
+        steps = `v = ${s} / ${t} = ${fmt(ans)} (нэгж: s, t-н нэгжээс хамаарна)`;
+      } else if (target === "s") {
+        if (isNaN(v) || isNaN(t)) {
+          out.innerHTML = "s бодохын тулд v болон t-г зөв оруулна.";
+          return;
+        }
+        ans = v * t;
+        formula = "s = v · t";
+        steps = `s = ${v} × ${t} = ${fmt(ans)} (нэгж: v, t-н нэгжээс хамаарна)`;
+      } else if (target === "t") {
+        if (isNaN(s) || isNaN(v) || v === 0) {
+          out.innerHTML = "t бодохын тулд s болон v-г зөв оруулна (v=0 байж болохгүй).";
+          return;
+        }
+        ans = s / v;
+        formula = "t = s / v";
+        steps = `t = ${s} / ${v} = ${fmt(ans)} (нэгж: s, v-н нэгжээс хамаарна)`;
+      }
+
+      out.innerHTML = `
+        <div><span class="formula">Томьёо: ${formula}</span></div>
+        <div>Алхмууд: ${steps}</div>
+      `;
+    }
+
+    function accelSolve() {
+      const u = parseFloat(document.getElementById('u3').value);
+      const a = parseFloat(document.getElementById('a3').value);
+      const t = parseFloat(document.getElementById('t3').value);
+      const out = document.getElementById('res3');
+
+      if (isNaN(u) || isNaN(a) || isNaN(t)) {
+        out.innerHTML = "u, a, t гурвыг оруулна.";
+        return;
+      }
+
+      const v = u + a * t;
+      const s = u * t + 0.5 * a * t * t;
+
+      out.innerHTML = `
+        <div><span class="formula">Томьёо: v = u + a·t</span></div>
+        <div>Алхмууд: v = ${u} + ${a}×${t} = ${fmt(v, "м/с")}</div>
+        <br/>
+        <div><span class="formula">Томьёо: s = u·t + ½·a·t²</span></div>
+        <div>Алхмууд: s = ${u}×${t} + 0.5×${a}×${t}² = ${fmt(s, "м")}</div>
+      `;
+    }
+  </script>
+</body>
+</html>“70 км замыг 2 цагт туулсан бол хурд хэд вэ?
+
+
